@@ -7,9 +7,17 @@ import (
 )
 
 func TestBencode(t *testing.T) {
-	s := strings.NewReader("Hello World!\n")
+	s := strings.NewReader("i-51e")
 	i := io.Reader(s)
 	bReader := NewBencodeReader(&i)
 
-	bReader.DecodeStream()
+	result, err := bReader.DecodeStream()
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	if result != -51 {
+		t.Error("Error Parsing Int")
+	}
+
 }
