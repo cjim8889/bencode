@@ -1,7 +1,6 @@
 package bencode
 
 import (
-	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -43,5 +42,7 @@ func TestParseBytes(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	fmt.Printf("%q\n", result)
+	if string(result.([]byte)) != "ab" {
+		t.Error("Parse bytes error")
+	}
 }
