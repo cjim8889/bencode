@@ -60,3 +60,16 @@ func TestParseList(t *testing.T) {
 
 	fmt.Println(result)
 }
+
+func TestParseDictionary(t *testing.T) {
+	s := strings.NewReader("d3:bar4:spam3:fooi42ee")
+	i := io.Reader(s)
+	bReader := NewBencodeReader(&i)
+
+	result, err := bReader.DecodeStream()
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	fmt.Println(result)
+}

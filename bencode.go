@@ -16,7 +16,7 @@ type ParseError struct {
 	error string
 }
 
-type BencodeListCell struct {
+type BencodeCell struct {
 	value interface{}
 }
 
@@ -37,17 +37,17 @@ func (r *BencodeReader) DecodeStream() (interface{}, error)  {
 	return result, nil
 }
 
-func ParseList(r *BencodeReader) ([]BencodeListCell, error) {
+func ParseList(r *BencodeReader) ([]BencodeCell, error) {
 	confirmation, err := r.reader.ReadByte()
 	if err != nil {
 		return nil, ParseError{err.Error()}
 	}
 
 	if confirmation != 'l' {
-		panic("FATAL ERROR: PARSE LIST")
+		return nil, ParseError{"FATAL ERROR: PARSE LIST"}
 	}
 
-	var result []BencodeListCell
+	var result []BencodeCell
 
 	for {
 		c, err := Parse(r)
@@ -55,7 +55,7 @@ func ParseList(r *BencodeReader) ([]BencodeListCell, error) {
 			return nil, ParseError{fmt.Sprintf("ParseList Error: %v\n", err.Error())}
 		}
 
-		result = append(result, BencodeListCell{c})
+		result = append(result, BencodeCell{c})
 
 		p, err := r.reader.Peek(1)
 		if err != nil {
@@ -105,9 +105,17 @@ func Parse(r *BencodeReader) (interface{}, error) {
 
 		return result, nil
 	}
+	case c == 'd': {
+		result, err := ParseDictionary(r)
+		if err != nil {
+			return nil, err
+		}
+
+		return result, nil
+	}
 	}
 
-	return nil, ParseError{}
+	return nil, ParseError{"Fatal error"}
 }
 
 func ParseByteString(r *BencodeReader) ([]byte, error) {
@@ -134,6 +142,51 @@ func ParseByteString(r *BencodeReader) ([]byte, error) {
 
 	return result, nil
 }
+
+func ParseDictionary(r *BencodeReader) (map[string]BencodeCell, error) {
+	confirmation, err := r.reader.ReadByte()
+	if err != nil {
+		return nil, ParseError{err.Error()}
+	}
+
+	if confirmation != 'd' {
+		return nil, ParseError{"FATAL ERROR: Parse Dictionary"}
+	}
+
+	var lastIndex string
+	result := make(map[string]BencodeCell)
+
+	for {
+		i, err := ParseByteString(r)
+		if err != nil {
+			return nil, ParseError{fmt.Sprintf("ParseDictionary Error: Error parsing index %v\n", err.Error())}
+		}
+
+		strComp := strings.Compare(lastIndex, string(i))
+		if lastIndex != "" && strComp == 1 {
+			return nil, ParseError{"ParseDictionary Error: All keys must be byte strings and must appear in lexicographical order"}
+		}
+
+		v, err := Parse(r)
+		if err != nil {
+			return nil, ParseError{"ParseDictionary Error: Error parsing key"}
+		}
+
+		result[string(i)] = BencodeCell{v}
+
+		p, err := r.reader.Peek(1)
+		if err != nil {
+			return nil, ParseError{"ParseDictionary Error: Error peeking"}
+		}
+
+		if p[0] == 'e' {
+			break
+		}
+	}
+
+	return result, nil
+}
+
 
 func ParseInt(r *BencodeReader) (int, error) {
 	var numberBuffer []byte
