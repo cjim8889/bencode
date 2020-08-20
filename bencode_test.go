@@ -1,7 +1,6 @@
 package bencode
 
 import (
-	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -43,7 +42,7 @@ func TestParseBytes(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if string(result.([]byte)) != "ab" {
+	if result.(string) != "ab" {
 		t.Error("Parse bytes error")
 	}
 }
@@ -58,7 +57,10 @@ func TestParseList(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	fmt.Println(result)
+	r := result.([]BencodeCell)
+	if r[0].value.(string) != "ab" && r[1].value.(int) != 5 {
+		t.Error("ParseList failed")
+	}
 }
 
 func TestParseDictionary(t *testing.T) {
@@ -71,5 +73,36 @@ func TestParseDictionary(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	fmt.Println(result)
+	r := result.(map[string]BencodeCell)
+	if r["bar"].value.(string) != "spam" {
+		t.Error("Test parse Dictionary failed")
+	}
+}
+
+func TestEncoder(t *testing.T) {
+	s := []BencodeCell{{10}, {"nima"}}
+
+	r, err := EncodeList(s)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	if string(r) != "li10e4:nimae" {
+		t.Error("Encoder test failed")
+	}
+}
+
+func TestEncodeDictionary(t *testing.T) {
+	s := make(map[string]BencodeCell)
+	s["hello"] = BencodeCell{1}
+	s["world"] = BencodeCell{"2"}
+
+	r, err := Encode(s)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	if string(r) != "d5:helloi1e5:world1:2e" {
+		t.Error("Encoder Dictionary test failed")
+	}
 }
