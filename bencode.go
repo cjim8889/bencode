@@ -16,6 +16,10 @@ type ParseError struct {
 	error string
 }
 
+type BencodeListCell struct {
+	value interface{}
+}
+
 func (e ParseError) Error() string {
 	return fmt.Sprintf("Parse Int Error: %v\n", e.error)
 }
@@ -25,34 +29,85 @@ func NewBencodeReader(r *io.Reader) BencodeReader {
 }
 
 func (r *BencodeReader) DecodeStream() (interface{}, error)  {
+	result, err := Parse(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func ParseList(r *BencodeReader) ([]BencodeListCell, error) {
+	confirmation, err := r.reader.ReadByte()
+	if err != nil {
+		return nil, ParseError{err.Error()}
+	}
+
+	if confirmation != 'l' {
+		panic("FATAL ERROR: PARSE LIST")
+	}
+
+	var result []BencodeListCell
+
 	for {
-		b, err := r.reader.Peek(1)
+		c, err := Parse(r)
 		if err != nil {
+			return nil, ParseError{fmt.Sprintf("ParseList Error: %v\n", err.Error())}
+		}
+
+		result = append(result, BencodeListCell{c})
+
+		p, err := r.reader.Peek(1)
+		if err != nil {
+			if err == io.EOF {
+				return nil, ParseError{"ParseList Error: EOF"}
+			}
+
+			return nil, ParseError{"ParseList Error: Forward peek failed"}
+		}
+
+		if p[0] == 'e' {
 			break
-		}
-
-		switch c := b[0]; {
-		case c == 'i': {
-			result, err := ParseInt(r)
-			if err != nil {
-				return nil, err
-			}
-
-			return result, nil
-		}
-		case c >= 48 && c <= 57: {
-			result, err := ParseByteString(r)
-			if err != nil {
-				return nil, err
-			}
-
-			return result, nil
-		}
-			
 		}
 	}
 
-	return nil, nil
+	return result, nil
+}
+
+func Parse(r *BencodeReader) (interface{}, error) {
+	b, err := r.reader.Peek(1)
+	if err != nil {
+		return nil, err
+	}
+
+	switch c := b[0]; {
+	case c == 'i': {
+		result, err := ParseInt(r)
+		if err != nil {
+			return nil, err
+		}
+
+		return result, nil
+	}
+	case c >= 48 && c <= 57: {
+		result, err := ParseByteString(r)
+		if err != nil {
+			return nil, err
+		}
+
+		return result, nil
+	}
+	case c == 'l': {
+		result, err := ParseList(r)
+		if err != nil {
+			return nil, err
+		}
+
+		return result, nil
+	}
+	}
+
+	return nil, ParseError{}
 }
 
 func ParseByteString(r *BencodeReader) ([]byte, error) {
@@ -82,11 +137,7 @@ func ParseByteString(r *BencodeReader) ([]byte, error) {
 
 func ParseInt(r *BencodeReader) (int, error) {
 	var numberBuffer []byte
-	//numberBuffer := make([]byte, 12)
-	//bufferHead := 0
-
 	confirmation, err := r.reader.ReadByte()
-	//negativeFlag := -1
 
 	if err != nil || confirmation != 'i' {
 		return 0, ParseError{}

@@ -1,6 +1,7 @@
 package bencode
 
 import (
+	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -45,4 +46,17 @@ func TestParseBytes(t *testing.T) {
 	if string(result.([]byte)) != "ab" {
 		t.Error("Parse bytes error")
 	}
+}
+
+func TestParseList(t *testing.T) {
+	s := strings.NewReader("l2:abi5ee")
+	i := io.Reader(s)
+	bReader := NewBencodeReader(&i)
+
+	result, err := bReader.DecodeStream()
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	fmt.Println(result)
 }
