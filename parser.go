@@ -49,6 +49,7 @@ func ParseList(r *Reader) ([]BencodeCell, error) {
 		}
 
 		if p[0] == 'e' {
+			r.reader.ReadByte()
 			break
 		}
 	}
@@ -112,17 +113,54 @@ func ParseByteString(r *Reader) (string, error) {
 		return "", ParserError{}
 	}
 
-	result := make([]byte, byteCount)
-	n, err := r.reader.Read(result)
+	result, err := readFullByteString(r, byteCount)
 	if err != nil {
-		return "", ParserError{}
+		return "", err
 	}
 
-	if byteCount != n {
-		return "", ParserError{}
+	if byteCount != len(*result) {
+		return "", ParserError{"ByteCount does not match with the length."}
 	}
 
-	return string(result), nil
+	return string(*result), nil
+}
+
+func readFullByteString(r *Reader, length int) (*[]byte, error) {
+	result := make([]byte, 0, length)
+	var tempLength int
+	if 512 <= length {
+		tempLength = 512
+	} else {
+		tempLength = length
+	}
+
+
+	temp := make([]byte, tempLength)
+	totalByteRead := 0
+
+	for {
+		n, err := r.reader.Read(temp)
+		if err != nil {
+			return nil, ParserError{"ByteString reading failed"}
+		}
+
+		result = append(result, temp[:n]...)
+		totalByteRead += n
+
+		if length - totalByteRead < 512 {
+			temp = make([]byte, length - totalByteRead)
+		}
+
+		if totalByteRead == length {
+			break
+		}
+	}
+
+	if totalByteRead != length {
+		return nil, ParserError{""}
+	}
+
+	return &result, nil
 }
 
 func ParseDictionary(r *Reader) (map[string]BencodeCell, error) {
@@ -151,7 +189,7 @@ func ParseDictionary(r *Reader) (map[string]BencodeCell, error) {
 
 		v, err := Parse(r)
 		if err != nil {
-			return nil, ParserError{"ParseDictionary Error: Error parsing key"}
+			return nil, ParserError{"ParseDictionary Error: Error parsing value"}
 		}
 
 		result[i] = BencodeCell{v}
@@ -162,6 +200,7 @@ func ParseDictionary(r *Reader) (map[string]BencodeCell, error) {
 		}
 
 		if p[0] == 'e' {
+			r.reader.ReadByte()
 			break
 		}
 	}

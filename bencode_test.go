@@ -2,6 +2,7 @@ package bencode
 
 import (
 	"io"
+	"os"
 	"strings"
 	"testing"
 )
@@ -79,6 +80,22 @@ func TestParseDictionary(t *testing.T) {
 	}
 }
 
+func TestParseListOfList(t *testing.T) {
+	s := strings.NewReader("d8:announce35:http://tracker.tfile.co:80/announce13:announce-listll35:http://tracker.tfile.co:80/announceel33:udp://open.stealth.si:80/announceeee")
+	i := io.Reader(s)
+	bReader := NewBencodeReader(i)
+
+	result, err := bReader.DecodeStream()
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	r := result.(map[string]BencodeCell)
+	if len(r) != 2 {
+		t.Error("Error parsing list of list")
+	}
+}
+
 func TestEncoder(t *testing.T) {
 	s := []BencodeCell{{10}, {"nima"}}
 
@@ -106,4 +123,22 @@ func TestEncodeDictionary(t *testing.T) {
 		t.Error("Encoder Dictionary test failed")
 	}
 
+}
+
+func TestBencodeParse(t *testing.T) {
+	file, err := os.Open("/Users/wuhaochen/go/src/github.com/cjim8889/bencode/test.torrent")
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	bReader := NewBencodeReader(file)
+	r, err := bReader.DecodeStream()
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	_, ok := r.(map[string]BencodeCell)
+	if !ok {
+		t.Error("Error reading torrent")
+	}
 }
