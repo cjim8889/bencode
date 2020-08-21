@@ -19,7 +19,7 @@ func (e ParserError) Error() string {
 	return fmt.Sprintf("Parser Error: %v\n", e.error)
 }
 
-func ParseList(r *BencodeReader) ([]BencodeCell, error) {
+func ParseList(r *Reader) ([]BencodeCell, error) {
 	confirmation, err := r.reader.ReadByte()
 	if err != nil {
 		return nil, ParserError{err.Error()}
@@ -56,7 +56,7 @@ func ParseList(r *BencodeReader) ([]BencodeCell, error) {
 	return result, nil
 }
 
-func Parse(r *BencodeReader) (interface{}, error) {
+func Parse(r *Reader) (interface{}, error) {
 	b, err := r.reader.Peek(1)
 	if err != nil {
 		return nil, err
@@ -100,7 +100,7 @@ func Parse(r *BencodeReader) (interface{}, error) {
 	return nil, ParserError{"Fatal error"}
 }
 
-func ParseByteString(r *BencodeReader) (string, error) {
+func ParseByteString(r *Reader) (string, error) {
 	byteCountA, err := r.reader.ReadBytes(':')
 	if err != nil {
 		return "", ParserError{}
@@ -125,7 +125,7 @@ func ParseByteString(r *BencodeReader) (string, error) {
 	return string(result), nil
 }
 
-func ParseDictionary(r *BencodeReader) (map[string]BencodeCell, error) {
+func ParseDictionary(r *Reader) (map[string]BencodeCell, error) {
 	confirmation, err := r.reader.ReadByte()
 	if err != nil {
 		return nil, ParserError{err.Error()}
@@ -170,7 +170,7 @@ func ParseDictionary(r *BencodeReader) (map[string]BencodeCell, error) {
 }
 
 
-func ParseInt(r *BencodeReader) (int, error) {
+func ParseInt(r *Reader) (int, error) {
 	var numberBuffer []byte
 	confirmation, err := r.reader.ReadByte()
 

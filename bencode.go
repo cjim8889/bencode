@@ -5,15 +5,15 @@ import (
 	"io"
 )
 
-type BencodeReader struct {
+type Reader struct {
 	reader *bufio.Reader
 }
 
-func NewBencodeReader(r *io.Reader) BencodeReader {
-	return BencodeReader{bufio.NewReader(*r)}
+func NewBencodeReader(r io.Reader) Reader {
+	return Reader{bufio.NewReader(r)}
 }
 
-func (r *BencodeReader) DecodeStream() (interface{}, error)  {
+func (r *Reader) DecodeStream() (interface{}, error)  {
 	result, err := Parse(r)
 	if err != nil {
 		return nil, err

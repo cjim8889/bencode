@@ -9,7 +9,7 @@ import (
 func TestParseInt(t *testing.T) {
 	s := strings.NewReader("i-500000000000000e")
 	i := io.Reader(s)
-	bReader := NewBencodeReader(&i)
+	bReader := NewBencodeReader(i)
 
 	result, err := bReader.DecodeStream()
 	if err != nil {
@@ -24,7 +24,7 @@ func TestParseInt(t *testing.T) {
 func TestParseIntNegative(t *testing.T) {
 	s := strings.NewReader("i--0e")
 	i := io.Reader(s)
-	bReader := NewBencodeReader(&i)
+	bReader := NewBencodeReader(i)
 
 	_, err := bReader.DecodeStream()
 	if err == nil {
@@ -35,7 +35,7 @@ func TestParseIntNegative(t *testing.T) {
 func TestParseBytes(t *testing.T) {
 	s := strings.NewReader("2:ab")
 	i := io.Reader(s)
-	bReader := NewBencodeReader(&i)
+	bReader := NewBencodeReader(i)
 
 	result, err := bReader.DecodeStream()
 	if err != nil {
@@ -50,7 +50,7 @@ func TestParseBytes(t *testing.T) {
 func TestParseList(t *testing.T) {
 	s := strings.NewReader("l2:abi5ee")
 	i := io.Reader(s)
-	bReader := NewBencodeReader(&i)
+	bReader := NewBencodeReader(i)
 
 	result, err := bReader.DecodeStream()
 	if err != nil {
@@ -66,7 +66,7 @@ func TestParseList(t *testing.T) {
 func TestParseDictionary(t *testing.T) {
 	s := strings.NewReader("d3:bar4:spam3:fooi42ee")
 	i := io.Reader(s)
-	bReader := NewBencodeReader(&i)
+	bReader := NewBencodeReader(i)
 
 	result, err := bReader.DecodeStream()
 	if err != nil {
