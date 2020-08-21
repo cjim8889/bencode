@@ -105,4 +105,5 @@ func TestEncodeDictionary(t *testing.T) {
 	if string(r) != "d5:helloi1e5:world1:2e" {
 		t.Error("Encoder Dictionary test failed")
 	}
+
 }
