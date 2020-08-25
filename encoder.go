@@ -36,7 +36,7 @@ func EncodeDictionary(d map[string]BencodeCell) ([]byte, error) {
 			return nil, EncoderError{"Key not found"}
 		}
 
-		encodedVal, err := Encode(mappedVal.value)
+		encodedVal, err := Encode(mappedVal.Value)
 		if err != nil {
 			return nil, err
 		}
@@ -91,7 +91,7 @@ func EncodeList(l []BencodeCell) ([]byte, error) {
 	result := []byte("l")
 
 	for _, v := range l {
-		r, err := Encode(v.value)
+		r, err := Encode(v.Value)
 		if err != nil {
 			return nil, err
 		}

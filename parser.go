@@ -12,7 +12,7 @@ type ParserError struct {
 }
 
 type BencodeCell struct {
-	value interface{}
+	Value interface{}
 }
 
 func (e ParserError) Error() string {
@@ -189,7 +189,7 @@ func ParseDictionary(r *Reader) (map[string]BencodeCell, error) {
 
 		v, err := Parse(r)
 		if err != nil {
-			return nil, ParserError{"ParseDictionary Error: Error parsing value"}
+			return nil, ParserError{"ParseDictionary Error: Error parsing Value"}
 		}
 
 		result[i] = BencodeCell{v}

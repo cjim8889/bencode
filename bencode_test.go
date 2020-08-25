@@ -59,7 +59,7 @@ func TestParseList(t *testing.T) {
 	}
 
 	r := result.([]BencodeCell)
-	if r[0].value.(string) != "ab" && r[1].value.(int) != 5 {
+	if r[0].Value.(string) != "ab" && r[1].Value.(int) != 5 {
 		t.Error("ParseList failed")
 	}
 }
@@ -75,7 +75,7 @@ func TestParseDictionary(t *testing.T) {
 	}
 
 	r := result.(map[string]BencodeCell)
-	if r["bar"].value.(string) != "spam" {
+	if r["bar"].Value.(string) != "spam" {
 		t.Error("Test parse Dictionary failed")
 	}
 }
